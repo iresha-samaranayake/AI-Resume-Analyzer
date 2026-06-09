@@ -1,4 +1,9 @@
 from flask import Flask, jsonify, request
+from services.pdf_reader import extract_text
+from services.skill_extractor import extract_skills
+from services.ats_scorer import calculate_ats_score
+from services.role_recommender import recommend_roles
+
 
 ##
 app = Flask(__name__)
@@ -30,8 +35,18 @@ def upload_resume():
             "error": "No file uploaded"
         }), 400
 
+    
+    file = request.files['file']
+    text = extract_text(file)
+    skills = extract_skills(text)
+    ats_result = calculate_ats_score(text, skills)
+    role_recommendations = recommend_roles(skills)
     return jsonify({
-        "message": "File received successfully"
+        "ats_score": ats_result["score"],
+        "feedback": ats_result["feedback"],
+        "skills_Found": skills,
+        "extracted_text": text,
+        "role_recommendations": role_recommendations
     })
 
 
